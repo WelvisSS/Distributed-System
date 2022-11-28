@@ -1,8 +1,9 @@
 import threading
 import socket
+import os
 
 clients = []
-numConexoes = 3 
+numConexoes = 1 
 mensagensRecebidas = []
 
 def main():
@@ -45,17 +46,23 @@ def main():
                     print('Operação cancelada')
 
 def broadcastZipFile():
-    words = ['dia', 'hoje', 'a']
+    keywords = ['a', 'hoje', 'a']
     count = 0
     # Percorre a lista de clientes que estabeleceram uma coneexão
     for clientItem in clients:
         # Para cada cliente individualmente envia uma parte específica para ser processado
-        try:
-            value = f'{words[count]}'
-            codificando = value.encode('utf-8')
-            clientItem.send(codificando)
-        except:
-            deleteClient(clientItem)
+        # try:
+        file = open("original.zip", 'rb')
+        file_size = os.path.getsize("original.zip")        
+
+        clientItem.send(f"recebido{count}.zip".encode())
+        clientItem.send(str(file_size).encode())
+        clientItem.send(keywords[count].encode())
+
+        data = file.read()
+        clientItem.sendall(data)
+
+        file.close()
         count += 1
 
 # É acionado quando algum dos clientes envia uma mensagem
