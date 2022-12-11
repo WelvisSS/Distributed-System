@@ -1,86 +1,96 @@
-import threading
-import socket
 import os
+import math
+import socket
+import threading
 
-clients = []
-numConexoes = 1 
-mensagensRecebidas = []
+class Server():
+    def __init__(self, host='localhost', port=7777):
+        super().__init__()
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.host = host
+        self.port = port
+        self.mensagensRecebidas = []
+        self.numConexoes = 1
+        self.clients = []
 
-def main():
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        # Iniciando o servidor no host e porta especificada
-        server.bind(('localhost', 7777))
-        # Servidor ouvindo
-        server.listen()
-        print('Servidor rodando!')
-    except:
-        return print('\nNão foi possível iniciar o servidor!\n')
-
-    # Laço que se repete a cada conexão estabelecida
-    while True:
-        # Recebendo conexões de clientes
-        client, addr = server.accept()
-        # Adiciona cada novo cliente na lista de clientes
-        clients.append(client)
-        # Cria uma thread para cada conexão estabelacida
-        thread = threading.Thread(target=messagesTreatment, args=[client])
-        # Inicia a thread
-        thread.start()
-
-        # Quando o número de conexões definido é alcançado, inicia o processo de envio dos arquivos
-        if len(clients) == numConexoes:
-            while True:
-                res = input('Iniciar processamento? (Sim) (Não)\n')
-                if res == 'Sim':
-                    global mensagensRecebidas
-                    mensagensRecebidas = []
-                    # Envio dos arquivos para cada cliente conectado
-                    broadcastZipFile()
-                    # Em quanto as respostas de todos os clientes não chegarem, continua no laço                    
-                    while len(mensagensRecebidas) != numConexoes:
-                        continue
-                elif res == 'M':
-                    print(mensagensRecebidas)
-                else:
-                    print('Operação cancelada')
-
-def broadcastZipFile():
-    keywords = ['a', 'hoje', 'a']
-    count = 0
-    # Percorre a lista de clientes que estabeleceram uma coneexão
-    for clientItem in clients:
-        # Para cada cliente individualmente envia uma parte específica para ser processado
-        # try:
-        file = open("original.zip", 'rb')
-        file_size = os.path.getsize("original.zip")        
-
-        clientItem.send(f"recebido{count}.zip".encode())
-        clientItem.send(str(file_size).encode())
-        clientItem.send(keywords[count].encode())
-
-        data = file.read()
-        clientItem.sendall(data)
-
-        file.close()
-        count += 1
-
-# É acionado quando algum dos clientes envia uma mensagem
-def messagesTreatment(client):
-    while True:
+    def main(self):
         try:
-            msg = client.recv(2048)
-            msg = msg.decode('utf-8')
-            global mensagensRecebidas
-            mensagensRecebidas.append(msg)
-            print(msg)
-            # broadcast(msg, client)
+            # Iniciando o servidor no host e porta especificada
+            self.server.bind((self.host, self.port))
+            # Servidor ouvindo
+            self.server.listen()
+            print('Servidor rodando!')
         except:
-            deleteClient(client)
-            break
+            return print('\nNão foi possível iniciar o servidor!\n')
+
+        # Laço que se repete a cada conexão estabelecida
+        while True:
+            # Recebendo conexões de clientes
+            client, addr = self.server.accept()
+            # Adiciona cada novo cliente na lista de clientes
+            self.clients.append(client)
+            # Cria uma thread para cada conexão estabelacida
+            thread = threading.Thread(target=self.messagesTreatment, args=[client])
+            # Inicia a thread
+            thread.start()
+
+            # Quando o número de conexões definido é alcançado, inicia o processo de envio dos arquivos
+            if len(self.clients) == self.numConexoes:
+                while True:
+                    res = input('Iniciar processamento? (Sim) (Não)\n')
+                    self.broadcastZipFile()
+
+    def broadcastZipFile(self):
+        # Palavras que serão buscadas
+        keywords = ['a', 'hoje', 'a']
+        # Nomes dos arquivos que serão enviados
+        fileNames = ['parte1.zip', 'parte2.zip', 'parte2.zip']
+        count = 0
+        # Percorre a lista de clientes que estabeleceram uma coneexão
+        for clientItem in self.clients:
+            # Para cada cliente individualmente envia uma parte específica para ser processado
+            file = open(fileNames[0], 'rb')
+            file_size = os.path.getsize(fileNames[0]) 
+
+            clientItem.send(f"{count}".encode())
+            clientItem.send(str(file_size).encode())
+            clientItem.send(f'diferente'.encode())
+
+            data = file.read()
+            clientItem.sendall(data)
+
+            file.close()
+            count += 1
+
+    # É acionado quando algum dos clientes envia uma mensagem
+    def messagesTreatment(self, client):
+        while True:
+            try:
+                file_name = client.recv(2048).decode()
+                file_size = int(client.recv(2048).decode())
+
+                total_packages = 1
+
+                if file_size > 2048:
+                    total_packages = math.ceil(file_size/2048)
+
+                file_bytes = b""
+
+                for i in range(total_packages):
+                    data = client.recv(2048)
+                    file_bytes += data
+
+                file = open(file_name, "wb")        
+                file.write(file_bytes)
+                file.close()
+                print('Terminado')
+                
+            except:
+                self.deleteClient(client)
+                break
 
 
-def deleteClient(client):
-    clients.remove(client)
+    def deleteClient(self, client):
+        self.clients.remove(client)
 
-main()
+Server().main()

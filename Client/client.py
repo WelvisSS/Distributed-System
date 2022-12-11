@@ -1,83 +1,88 @@
-import threading
-import socket
+import os
 import math
+import socket
+import threading
 from zipfile import ZipFile
 
-def main():
+class Client():
+    def __init__(self, host='localhost', port=7777):
+        super().__init__()
+        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sockname = None
+        self.clientName = None
+        self.file_name = None
+        self.file_size = None
+        self.keyword = None
+        self.host = host
+        self.port = port
+        self.portSize = 2048
+        self.file_index = 0
 
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    try:
-        client.connect(('localhost', 7777))
-        print('\nConectado')
-    except:
-        return print('\nNão foi possívvel se conectar ao servidor!\n')
-
-    username = input('Usuário> ')
-
-    thread1 = threading.Thread(target=receiveMessages, args=[client, username])
-    thread2 = threading.Thread(target=sendMessages, args=[client, username])
-
-    thread1.start()
-    thread2.start()
-
-
-def receiveMessages(client, username):
-    while True:
-
-        file_name = client.recv(2048).decode()
-        file_size = client.recv(2048).decode()
-        keyword = client.recv(2048).decode()
-        total_packages = math.ceil(int(file_size)/2048)
-        file_bytes = b""
-
-        file = open(file_name, "wb")        
-
-        for i in range(total_packages):
-            data = client.recv(2048)
-            file_bytes += data
-
-        file.write(file_bytes)
-        print('Terminado')
-        file.close()
-
-        sendTeste(client, username, file_name, keyword)
-            
-def sendTeste(client, username, file_name, keyword):
-    try:
-        total = fileExtract(file_name, keyword)
-        msg = f'Eu sou o cliente {username} e recebi o arquivo {file_name} com resultado {total}'
-        msg = msg.encode('utf-8')
-        client.send(msg)
-    except:
-        return
-
-def fileExtract(file_name, keyword):
-
-    z = ZipFile('recebido0.zip', 'r')
-    z.extractall(path='pasta0')
-    z.close()
-
-    text = open("pasta0/livro.txt", "r") 
-    d = dict() 
-
-    for line in text:
-        words = line.strip().split(" ")          
-        for word in words: 
-            if word in d: 
-                d[word] += 1
-            else: 
-                d[word] = 1
-
-    return d[keyword]
-
-def sendMessages(client, username):
-    while True:
+    def main(self):
         try:
-            msg = input('\n')
-            client.send(f'<{username}> {msg}'.encode('utf-8'))
+            self.client.connect((self.host, self.port))
+            print('\nCliente Conectado!')
+        except:
+            return print('\nNão foi possívvel se conectar ao servidor!\n')
+
+        self.clientName = input('Usuário> ')
+
+        thread1 = threading.Thread(target=self.receiveMessages, args=[])
+
+        thread1.start()
+    
+    def receiveMessages(self):
+        while True:
+            
+            self.file_index = int(self.client.recv(self.portSize).decode())
+            self.file_name = f'recebido{self.file_index}.zip'
+            self.file_size = int(self.client.recv(self.portSize).decode())
+            self.keyword = self.client.recv(self.portSize).decode()
+
+            total_packages = 1
+
+            if(total_packages > self.portSize):
+                total_packages = math.ceil(self.file_size/self.portSize)
+
+            file_bytes = b""
+            file = open(self.file_name, "wb")        
+
+            for i in range(total_packages):
+                data = self.client.recv(self.portSize)
+                file_bytes += data
+
+            file.write(file_bytes)
+            file.close()
+            print('Preparando o envio do arquivo\n')
+            self.sendMessages()
+
+    def sendMessages(self):
+        try:
+            total = self.fileExtract()
+
+            arquivo = open(f'txt{self.file_index}.txt', 'w')
+            arquivo.write(str(total))
+            arquivo.close()
+
+            file = open(f'txt{self.file_index}.txt', 'rb')
+            data = file.read()
+            file.close()
+            print('mensagem enviada')
+
+            file_size = os.path.getsize(f'txt{self.file_index}.txt') 
+            self.client.send(f'txt{self.file_index}.txt'.encode())
+            self.client.send(str(file_size).encode())
+            self.client.sendall(data)
+
         except:
             return
 
+    def fileExtract(self):
 
-main()
+        z = ZipFile(f'recebido{self.file_index}.zip', 'r')
+        z.extractall(path=f'pasta{self.file_index}')
+        z.close()
+        from pasta0 import script
+        return script.search(f'pasta{self.file_index}/livro.txt', self.keyword)
+
+Client().main()
