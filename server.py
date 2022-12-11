@@ -9,9 +9,10 @@ class Server():
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.host = host
         self.port = port
-        self.mensagensRecebidas = []
+        self.mensagensRecebidas = 0
         self.numConexoes = 1
         self.clients = []
+        self.numOcorrencias = 0
 
     def main(self):
         try:
@@ -37,12 +38,14 @@ class Server():
             # Quando o número de conexões definido é alcançado, inicia o processo de envio dos arquivos
             if len(self.clients) == self.numConexoes:
                 while True:
+
                     res = input('Iniciar processamento? (Sim) (Não)\n')
+                    self.numOcorrencias = 0
                     self.broadcastZipFile()
 
     def broadcastZipFile(self):
         # Palavras que serão buscadas
-        keywords = ['a', 'hoje', 'a']
+        keywords = 'diferente'
         # Nomes dos arquivos que serão enviados
         fileNames = ['parte1.zip', 'parte2.zip', 'parte2.zip']
         count = 0
@@ -51,10 +54,10 @@ class Server():
             # Para cada cliente individualmente envia uma parte específica para ser processado
             file = open(fileNames[0], 'rb')
             file_size = os.path.getsize(fileNames[0]) 
-
+    
             clientItem.send(f"{count}".encode())
             clientItem.send(str(file_size).encode())
-            clientItem.send(f'diferente'.encode())
+            clientItem.send(keywords.encode())
 
             data = file.read()
             clientItem.sendall(data)
@@ -83,6 +86,17 @@ class Server():
                 file = open(file_name, "wb")        
                 file.write(file_bytes)
                 file.close()
+
+                # Faz a leitura do resultado obtido no arquivo
+                with open(file_name, 'r') as arquivo:
+                    result = int(arquivo.read().strip())
+                    self.numOcorrencias += result
+                    print(self.numOcorrencias)
+
+                # # Apagando o arquivo
+                # if os.path.exists(file_name): 
+                #     os.remove(file_name)
+
                 print('Terminado')
                 
             except:
