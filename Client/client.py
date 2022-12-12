@@ -3,6 +3,7 @@ import math
 import socket
 import shutil
 import threading
+import os, subprocess
 from zipfile import ZipFile
 
 class Client():
@@ -109,14 +110,25 @@ class Client():
         z.extractall(path=f'pasta{self.file_index}')
         z.close()
 
-        from pasta0 import script
+        # from pasta0 import script
 
-        result = script.search(f'pasta{self.file_index}/livro.txt', self.keyword)
+        result = 0
+        
+
+        absolute_path = os.path.dirname(__file__)
+        relative_path = f"pasta{self.file_index}/script.py"
+        full_path = os.path.join(absolute_path, relative_path)
+
+        result = subprocess.run("py \""+full_path+"\"", capture_output=True)
+        print(result.stdout)
+            
+        search(f'pasta{self.file_index}/livro.txt', self.keyword)
+
         # Apagando a pasta
         shutil.rmtree(f'pasta{self.file_index}')
         # Apagando o arquivo
-        # if os.path.exists(file_name): 
-        #     os.remove(file_name)
+        if os.path.exists(file_name): 
+            os.remove(file_name)
 
         return result
 

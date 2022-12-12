@@ -1,0 +1,15 @@
+def search(diretorio, keyword):
+    text = open(diretorio, "r") 
+    d = dict() 
+
+    for line in text:
+        words = line.strip().split(" ")          
+        for word in words: 
+            if word in d: 
+                d[word] += 1
+            else: 
+                d[word] = 1
+
+    text.close()
+    return d[keyword] 
+
