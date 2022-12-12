@@ -45,7 +45,7 @@ class Server():
 
     def broadcastZipFile(self):
         # Palavras que serão buscadas
-        keywords = 'diferente'
+        keywords = "diferente"
         # Nomes dos arquivos que serão enviados
         fileNames = ['parte1.zip', 'parte2.zip', 'parte2.zip']
         count = 0
@@ -55,9 +55,12 @@ class Server():
             file = open(fileNames[0], 'rb')
             file_size = os.path.getsize(fileNames[0]) 
     
-            clientItem.send(f"{count}".encode())
-            clientItem.send(str(file_size).encode())
-            clientItem.send(keywords.encode())
+            # clientItem.send(f"{count}".encode())
+            # clientItem.send(str(file_size).encode())
+            # clientItem.send(keywords.encode())
+
+            msg = f"{count} {file_size} {keywords}".encode()
+            clientItem.send(msg)
 
             data = file.read()
             clientItem.sendall(data)

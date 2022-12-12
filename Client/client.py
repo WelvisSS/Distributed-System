@@ -34,11 +34,15 @@ class Client():
     
     def receiveMessages(self):
         while True:
+
+            msg = self.client.recv(self.portSize).decode().split(' ')
+
+            print(msg)
             
-            self.file_index = int(self.client.recv(self.portSize).decode())
+            self.file_index = int(msg[0])
             self.file_name = f'recebido{self.file_index}.zip'
-            self.file_size = self.client.recv(self.portSize).decode()
-            self.keyword = self.client.recv(self.portSize).decode()
+            self.file_size = msg[1]
+            self.keyword = msg[2]
 
             print(self.file_index)
             print(self.file_name)
