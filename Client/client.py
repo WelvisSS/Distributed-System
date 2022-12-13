@@ -6,6 +6,8 @@ import threading
 import os, subprocess
 from zipfile import ZipFile
 
+absolute_path = os.path.dirname(__file__)
+
 class Client():
     def __init__(self, host='localhost', port=7777):
         super().__init__()
@@ -75,60 +77,56 @@ class Client():
             self.sendMessages()
 
     def sendMessages(self):
-        try:
-            total = self.fileExtract()
+        # try:
+        total = self.fileExtract()
 
-            file_name = f'txt{self.file_index}.txt'
+        file_name = f'txt{self.file_index}.txt'
 
-            arquivo = open(file_name, 'w')
-            arquivo.write(str(total))
-            arquivo.close()
+        arquivo = open(file_name, 'w')
+        arquivo.write(str(total))
+        arquivo.close()
 
-            file = open(file_name, 'rb')
-            data = file.read()
-            file.close()
-            
-            # # Apagando o arquivo
-            # if os.path.exists(file_name): 
-            #     os.remove(file_name)
+        file = open(file_name, 'rb')
+        data = file.read()
+        file.close()
+        # # Apagando o arquivo
+        # if os.path.exists(file_name): 
+        #     os.remove(file_name)
 
-            print('mensagem enviada')
+        print('mensagem enviada')
 
-            file_size = os.path.getsize(file_name) 
-            self.client.send(file_name.encode())
-            self.client.send(str(file_size).encode())
-            self.client.sendall(data)
+        file_size = os.path.getsize(file_name) 
+        self.client.send(file_name.encode())
+        self.client.send(str(file_size).encode())
+        self.client.sendall(data)
 
-        except:
-            return
+        # except:
+        # print('exc')
+        #     return
 
     def fileExtract(self):
-
+        global absolute_path
         file_name = f'recebido{self.file_index}.zip'
 
         z = ZipFile(file_name, 'r')
-        z.extractall(path=f'pasta{self.file_index}')
+        z.extractall(path=f'{absolute_path}/pasta{self.file_index}')
         z.close()
-
-        # from pasta0 import script
 
         result = 0
         
-
-        absolute_path = os.path.dirname(__file__)
         relative_path = f"pasta{self.file_index}/script.py"
         full_path = os.path.join(absolute_path, relative_path)
 
-        result = subprocess.run("py \""+full_path+"\"", capture_output=True)
-        print(result.stdout)
+        txt_path = f'pasta{self.file_index}/livro.txt'
+        result = subprocess.run("py \""+full_path+f"\" \"{txt_path}\" {self.keyword}", capture_output=True)
+        print(result.stdout.decode())
             
-        search(f'pasta{self.file_index}/livro.txt', self.keyword)
 
         # Apagando a pasta
-        shutil.rmtree(f'pasta{self.file_index}')
+        # shutil.rmtree(f'pasta{self.file_index}')
         # Apagando o arquivo
-        if os.path.exists(file_name): 
-            os.remove(file_name)
+        # if os.path.exists(file_name): 
+        #     os.remove(file_name)
 
         return result
 
