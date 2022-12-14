@@ -10,7 +10,7 @@ class Server():
         self.host = host
         self.port = port
         self.mensagensRecebidas = 0
-        self.numConexoes = 4
+        self.numConexoes = 3
         self.clients = []
         self.numOcorrencias = 0
 
@@ -59,8 +59,9 @@ class Server():
             # clientItem.send(str(file_size).encode())
             # clientItem.send(keywords.encode())
 
-            msg = f"{count} {file_size} {keywords}".encode()
-            clientItem.send(msg)
+            msg = f"{count} {file_size} {keywords}"
+
+            clientItem.send(str(msg).encode())
 
             data = file.read()
             clientItem.sendall(data)
