@@ -89,9 +89,6 @@ class Client():
         file = open(file_name, 'rb')
         data = file.read()
         file.close()
-        # # Apagando o arquivo
-        # if os.path.exists(file_name): 
-        #     os.remove(file_name)
 
         print('mensagem enviada')
 
@@ -100,6 +97,9 @@ class Client():
         self.client.send(str(file_size).encode())
         self.client.sendall(data)
 
+        # # Apagando o arquivo txt com o resultado
+        if os.path.exists(file_name): 
+            os.remove(file_name)
         # except:
         # print('exc')
         #     return
@@ -121,12 +121,12 @@ class Client():
         result = subprocess.run("py \""+full_path+f"\" \"{txt_path}\" {self.keyword}", capture_output=True)
         print(result.stdout.decode())
             
-
+        result = 5
         # Apagando a pasta
-        # shutil.rmtree(f'pasta{self.file_index}')
-        # Apagando o arquivo
-        # if os.path.exists(file_name): 
-        #     os.remove(file_name)
+        shutil.rmtree(f'pasta{self.file_index}')
+        # Apagando o arquivo que foi recebido
+        if os.path.exists(file_name): 
+            os.remove(file_name)
 
         return result
 

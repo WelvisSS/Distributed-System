@@ -10,7 +10,7 @@ class Server():
         self.host = host
         self.port = port
         self.mensagensRecebidas = 0
-        self.numConexoes = 2
+        self.numConexoes = 4
         self.clients = []
         self.numOcorrencias = 0
 
