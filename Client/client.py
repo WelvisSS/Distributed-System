@@ -119,9 +119,9 @@ class Client():
 
         txt_path = f'pasta{self.file_index}/livro.txt'
         result = subprocess.run("py \""+full_path+f"\" \"{txt_path}\" {self.keyword}", capture_output=True)
-        print(result.stdout.decode())
+        # print(result.stdout.decode())
             
-        result = 5
+        result = result.stdout.decode()
         # Apagando a pasta
         shutil.rmtree(f'pasta{self.file_index}')
         # Apagando o arquivo que foi recebido
