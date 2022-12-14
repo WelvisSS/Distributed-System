@@ -48,7 +48,7 @@ class Server():
         split_txt('./livro.txt', self.numConexoes)
         create_zips('./split_result', './script.py')
 
-        # Palavras que serão buscadas
+        # Palavra que será buscada
         keywords = "diferente"
         # Nomes dos arquivos que serão enviados
 
@@ -102,7 +102,7 @@ class Server():
                 with open(file_name, 'r') as arquivo:
                     result = int(arquivo.read().strip())
                     self.numOcorrencias += result
-                    print(self.numOcorrencias)
+                    print('Resultados encontrados: ', self.numOcorrencias)
 
                 # # Apagando o arquivo
                 # if os.path.exists(file_name): 

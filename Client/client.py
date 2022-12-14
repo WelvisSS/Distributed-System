@@ -6,7 +6,6 @@ import threading
 import os, subprocess
 from zipfile import ZipFile
 
-
 absolute_path = os.path.dirname(__file__)
 
 class Client():
@@ -28,7 +27,7 @@ class Client():
             self.client.connect((self.host, self.port))
             print('\nCliente Conectado!')
         except:
-            return print('\nNão foi possívvel se conectar ao servidor!\n')
+            return print('\nNão foi possível se conectar ao servidor!\n')
 
         self.clientName = input('Usuário> ')
 
@@ -40,18 +39,11 @@ class Client():
         while True:
 
             msg = self.client.recv(self.portSize).decode().split(' ')
-
-            print(msg)
             
             self.file_index = int(msg[0])
             self.file_name = f'recebido{self.file_index}.zip'
             self.file_size = msg[1]
             self.keyword = msg[2]
-
-            print(self.file_index)
-            print(self.file_name)
-            print(self.file_size)
-            print(self.keyword)
 
             total_packages = 1
 
@@ -78,7 +70,7 @@ class Client():
             self.sendMessages()
 
     def sendMessages(self):
-        # try:
+
         total = self.fileExtract()
 
         file_name = f'txt{self.file_index}.txt'
@@ -98,32 +90,24 @@ class Client():
         self.client.send(str(file_size).encode())
         self.client.sendall(data)
 
-        # # Apagando o arquivo txt com o resultado
+        # Apagando o arquivo txt com o resultado
         if os.path.exists(file_name): 
             os.remove(file_name)
-        # except:
-        # print('exc')
-        #     return
 
     def fileExtract(self):
         global absolute_path
         file_name = f'recebido{self.file_index}.zip'
 
+        # Fazendo a extração do arquivo
         z = ZipFile(file_name, 'r')
         z.extractall(path=f'{absolute_path}/pasta{self.file_index}')
         z.close()
-
-        result = 0
         
         relative_path = f"pasta{self.file_index}/script.py"
         full_path = os.path.join(absolute_path, relative_path)
 
-        # res_file0.txt
-        # res_file1.txt
-        # res_file2.txt
         txt_path = f'pasta{self.file_index}/livro.txt'
         result = subprocess.run("py \""+full_path+f"\" \"{txt_path}\" {self.keyword}", capture_output=True)
-        # print(result.stdout.decode())
             
         result = result.stdout.decode()
         # Apagando a pasta
