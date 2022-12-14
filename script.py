@@ -16,4 +16,6 @@ def search(diretorio, keyword):
     return d[keyword] 
 
 args = sys.argv
-print(1)
+diretorio, keyword = args[1], args[2]
+
+print(search(diretorio, keyword))
