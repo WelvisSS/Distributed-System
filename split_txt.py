@@ -50,7 +50,7 @@ def create_zips(split_path, script):
     for i in range(len(split_files)):
         zipfile = zf.ZipFile(f'{result_dir}/parte{i}.zip', 'w', zf.ZIP_DEFLATED)
         zipfile.write(script)
-        zipfile.write(split_path+'/'+split_files[i], split_files[i])
+        zipfile.write(split_path+'/'+split_files[i], 'livro.txt')
         zipfile.close()
         
 

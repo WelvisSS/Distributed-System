@@ -118,6 +118,9 @@ class Client():
         relative_path = f"pasta{self.file_index}/script.py"
         full_path = os.path.join(absolute_path, relative_path)
 
+        # res_file0.txt
+        # res_file1.txt
+        # res_file2.txt
         txt_path = f'pasta{self.file_index}/livro.txt'
         result = subprocess.run("py \""+full_path+f"\" \"{txt_path}\" {self.keyword}", capture_output=True)
         # print(result.stdout.decode())

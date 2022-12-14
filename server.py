@@ -2,6 +2,7 @@ import os
 import math
 import socket
 import threading
+from split_txt import split_txt, create_zips
 
 class Server():
     def __init__(self, host='localhost', port=7777):
@@ -44,6 +45,9 @@ class Server():
                     self.broadcastZipFile()
 
     def broadcastZipFile(self):
+        split_txt('./livro.txt', self.numConexoes)
+        create_zips('./split_result', './script.py')
+
         # Palavras que serão buscadas
         keywords = "diferente"
         # Nomes dos arquivos que serão enviados
@@ -56,7 +60,7 @@ class Server():
         for clientItem in self.clients:
             # Para cada cliente individualmente envia uma parte específica para ser processado
             file = open(zips_dir+'/'+file_names[count], 'rb')
-            file_size = os.path.getsize(file_names[count]) 
+            file_size = os.path.getsize(zips_dir+'/'+file_names[count]) 
     
             # clientItem.send(f"{count}".encode())
             # clientItem.send(str(file_size).encode())
