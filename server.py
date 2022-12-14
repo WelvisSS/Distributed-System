@@ -47,13 +47,16 @@ class Server():
         # Palavras que serão buscadas
         keywords = "diferente"
         # Nomes dos arquivos que serão enviados
-        fileNames = ['parte1.zip', 'parte2.zip', 'parte3.zip']
+
+        zips_dir = "./zips"
+        file_names = os.listdir(zips_dir)
+
         count = 0
         # Percorre a lista de clientes que estabeleceram uma coneexão
         for clientItem in self.clients:
             # Para cada cliente individualmente envia uma parte específica para ser processado
-            file = open(fileNames[count], 'rb')
-            file_size = os.path.getsize(fileNames[count]) 
+            file = open(zips_dir+'/'+file_names[count], 'rb')
+            file_size = os.path.getsize(file_names[count]) 
     
             # clientItem.send(f"{count}".encode())
             # clientItem.send(str(file_size).encode())
