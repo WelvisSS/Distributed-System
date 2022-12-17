@@ -11,7 +11,7 @@ class Server():
         self.host = host
         self.port = port
         self.mensagensRecebidas = 0
-        self.numConexoes = 1
+        self.numConexoes = int(input("Quantas conexões serão feitas?\n"))
         self.clients = []
         self.numOcorrencias = 0
 
@@ -40,7 +40,7 @@ class Server():
             if len(self.clients) == self.numConexoes:
                 while True:
 
-                    res = input('Iniciar processamento? (Sim) (Não)\n')
+                    res = input('Aperte ENTER para iniciar processamento?\n')
                     self.numOcorrencias = 0
                     self.broadcastZipFile()
 
