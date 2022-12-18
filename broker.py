@@ -17,7 +17,7 @@ class Client():
         self.host = host
         self.port = port
         self.portSize = 2048
-        self.listServers = [['localhost', 7777]]
+        self.listServers = [['localhost', 7777], ['localhost', 7778], ['localhost', 7779]]
         self.servers = []
         self.numConexoes = len(self.listServers)
         self.numOcorrencias = 0
