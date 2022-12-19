@@ -1,3 +1,4 @@
+import time
 import os
 import math
 import socket
@@ -9,7 +10,7 @@ from zipfile import ZipFile
 absolute_path = os.path.dirname(__file__)
 
 class Server():
-    def __init__(self, host='localhost', port=7777):
+    def __init__(self, host='192.168.14.173', port=7777):
         super().__init__()
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.host = host
@@ -55,38 +56,39 @@ class Server():
 
     def receiveMessages(self, client):
         while True:
+            try: 
+                msg = client.recv(self.portSize).decode().split(' ')
+                print(msg[2])
+                self.file_index = int(msg[0])
+                self.file_name = f'recebido{self.file_index}.zip'
+                self.file_size = msg[1]
+                self.keyword = msg[2]
 
-            msg = client.recv(self.portSize).decode().split(' ')
-            
-            self.file_index = int(msg[0])
-            self.file_name = f'recebido{self.file_index}.zip'
-            self.file_size = msg[1]
-            self.keyword = msg[2]
+                total_packages = 1
 
-            total_packages = 1
+                total_size_convert = ''
+                for caractere in self.file_size:
+                    if caractere.isdigit():
+                        total_size_convert += caractere
 
-            total_size_convert = ''
-            for caractere in self.file_size:
-                if caractere.isdigit():
-                    total_size_convert += caractere
+                self.file_size = int(total_size_convert)
 
-            self.file_size = int(total_size_convert)
+                if(total_packages > self.portSize):
+                    total_packages = math.ceil(self.file_size/self.portSize)
 
-            if(total_packages > self.portSize):
-                total_packages = math.ceil(self.file_size/self.portSize)
+                file_bytes = b""
+                file = open(self.file_name, "wb")        
 
-            file_bytes = b""
-            file = open(self.file_name, "wb")        
+                for i in range(total_packages):
+                    data = client.recv(self.portSize)
+                    file_bytes += data
 
-            for i in range(total_packages):
-                data = client.recv(self.portSize)
-                file_bytes += data
-
-            file.write(file_bytes)
-            file.close()
-            print('Preparando o envio do arquivo\n')
-            self.sendMessages(client)
-
+                file.write(file_bytes)
+                file.close()
+                print('Preparando o envio do arquivo\n')
+                self.sendMessages(client)
+            except:
+                pass
     def sendMessages(self, client):
         
         total = self.fileExtract()
@@ -94,6 +96,7 @@ class Server():
         file_name = f'txt{self.file_index}.txt'
 
         arquivo = open(file_name, 'w')
+        print(str(total))
         arquivo.write(str(total))
         arquivo.close()
 
@@ -105,7 +108,9 @@ class Server():
 
         file_size = os.path.getsize(file_name) 
         client.send(file_name.encode())
+        time.sleep(0.2)
         client.send(str(file_size).encode())
+        time.sleep(0.2)
         client.sendall(data)
 
         # Apagando o arquivo txt com o resultado
