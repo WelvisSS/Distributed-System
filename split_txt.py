@@ -40,7 +40,7 @@ def split_txt(file_path, clients, numpy=False):
 def create_zips(split_path, script):
     split_files = os.listdir(split_path)
     
-    print(split_files)
+    # print(split_files)
     
     result_dir = './zips'
 

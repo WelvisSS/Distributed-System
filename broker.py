@@ -4,70 +4,67 @@ import socket
 import threading
 from split_txt import split_txt, create_zips
 
-class Server():
+class Client():
     def __init__(self, host='localhost', port=7777):
         super().__init__()
-        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sockname = None
+        self.clientName = None
+        self.file_name = None
+        self.file_size = None
+        self.fileName = input('Digite o nome do arquivo para ser processado: \n')
+        self.keyword = input('Digite a palavra para ser buscada: \n')
         self.host = host
         self.port = port
-        self.mensagensRecebidas = 0
-        self.numConexoes = int(input("Quantas conexões serão feitas?\n"))
-        self.clients = []
+        self.portSize = 2048
+        self.listServers = [['192.168.14.173', 7777], ['192.168.14.173', 7778]]
+        self.servers = []
+        self.numConexoes = len(self.listServers)
         self.numOcorrencias = 0
+        self.numReceiveMessages = 0
 
     def main(self):
-        try:
-            # Iniciando o servidor no host e porta especificada
-            self.server.bind((self.host, self.port))
-            # Servidor ouvindo
-            self.server.listen()
-            print('Servidor rodando!')
-        except:
-            return print('\nNão foi possível iniciar o servidor!\n')
+        for i in range(self.numConexoes):
+            try:
+                client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                client.connect((self.listServers[i][0], self.listServers[i][1]))
+                print(f'\nCliente Conectado em {self.listServers[i][0]} na porta {self.listServers[i][1]}!')
+            except:
+                return print('\nNão foi possível se conectar ao servidor!\n')
 
-        # Laço que se repete a cada conexão estabelecida
-        while True:
-            # Recebendo conexões de clientes
-            client, addr = self.server.accept()
-            # Adiciona cada novo cliente na lista de clientes
-            self.clients.append(client)
-            # Cria uma thread para cada conexão estabelacida
-            thread = threading.Thread(target=self.messagesTreatment, args=[client])
-            # Inicia a thread
-            thread.start()
+            self.servers.append(client)
 
-            # Quando o número de conexões definido é alcançado, inicia o processo de envio dos arquivos
-            if len(self.clients) == self.numConexoes:
-                while True:
+            thread1 = threading.Thread(target=self.messagesTreatment, args=[client])
 
-                    res = input('Aperte ENTER para iniciar processamento?\n')
-                    self.numOcorrencias = 0
-                    self.broadcastZipFile()
+            thread1.start()
+
+
+        if len(self.servers) == self.numConexoes:
+            while True:
+                res = input('Precione ENTER para iniciar o processamento...\n')
+                self.numOcorrencias = 0
+                self.broadcastZipFile()
 
     def broadcastZipFile(self):
-        split_txt('./livro.txt', self.numConexoes)
+        split_txt(f'./{self.fileName}', self.numConexoes)
         create_zips('./split_result', './script.py')
-
-        # Palavra que será buscada
-        keywords = "diferente"
-        # Nomes dos arquivos que serão enviados
 
         zips_dir = "./zips"
         file_names = os.listdir(zips_dir)
 
         count = 0
         # Percorre a lista de clientes que estabeleceram uma coneexão
-        for clientItem in self.clients:
+        for clientItem in self.servers:
             # Para cada cliente individualmente envia uma parte específica para ser processado
             file = open(zips_dir+'/'+file_names[count], 'rb')
             file_size = os.path.getsize(zips_dir+'/'+file_names[count]) 
-    
-            # clientItem.send(f"{count}".encode())
-            # clientItem.send(str(file_size).encode())
-            # clientItem.send(keywords.encode())
 
-            msg = f"{count} {file_size} {keywords}"
-
+            msg = f"{count} {file_size} {self.keyword}"
+            
+            if (self.numReceiveMessages == self.numConexoes):
+                exit()
+                
+            
             clientItem.send(str(msg).encode())
 
             data = file.read()
@@ -102,20 +99,23 @@ class Server():
                 with open(file_name, 'r') as arquivo:
                     result = int(arquivo.read().strip())
                     self.numOcorrencias += result
+                    self.numReceiveMessages += 1
                     print('Resultados encontrados: ', self.numOcorrencias)
 
-                # # Apagando o arquivo
-                # if os.path.exists(file_name): 
-                #     os.remove(file_name)
-
                 print('Terminado')
+
+
+                if (self.numReceiveMessages == self.numConexoes):
+                    client.close()
+                    print('Conecxão encerrada para este servidor!')
+                    break
                 
             except:
-                self.deleteClient(client)
+                # self.deleteClient(client)
                 break
-
-
+        
     def deleteClient(self, client):
-        self.clients.remove(client)
+        self.servers.remove(client)
 
-Server().main()
+
+Client().main()
